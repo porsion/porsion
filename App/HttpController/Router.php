@@ -22,6 +22,12 @@ class Router extends AbstractRouter
          * 所有的路由文件都写在这里
          */
         $route->get($this->format_url('/index'),'Index/index');
+        $route->get($this->format_url('/login'),'Login/index');
+        $route->post($this->format_url('/login'),'Login/index');
+        $route->get($this->format_url('/logout'),'Login/logout');
+        $route->get($this->format_url('/initmenu'),'Login/initmenu');
+        $route->get($this->format_url('/initmsg'),'Login/initmsg');
+        
     }
 
 
