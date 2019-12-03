@@ -34,6 +34,7 @@ class Router extends AbstractRouter
 
     /**
      * 格式化路由
+     * @param $url 路由
      */
     private function format_url ( ? string $url = null) :string
     {
@@ -41,6 +42,5 @@ class Router extends AbstractRouter
             return '/';
         else
             return self::URL_SUFFIX.$url.self::URL_HTML_SUFFIX;
-
     }
 }
