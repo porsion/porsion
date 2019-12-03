@@ -26,6 +26,9 @@ class Router extends AbstractRouter
 
 
 
+    /**
+     * 格式化路由
+     */
     private function format_url ( ? string $url = null) :string
     {
         if( is_null($url) ) 
