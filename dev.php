@@ -22,16 +22,14 @@ return [
     'LOG_DIR' =>  EASYSWOOLE_ROOT . '/runtime/logs',
     /*################ MYSQL CONFIG ##################*/
 
-        'MYSQL' => [
-            'host'          => '127.0.0.1',
-            'port'          => '3306',
-            'user'          => 'root',
-            'timeout'       => '5',
-            'charset'       => 'utf8',
-            'password'      => 'adb123456',
-            'database'      => 'rpc',
-            'POOL_MAX_NUM'  => '20',
-            'POOL_TIME_OUT' => '0.1',
+        'MYSQLi' => [
+            'host'                  => '127.0.0.1',
+            'port'                  => 3306,
+            'user'                  => 'root',
+            'timeout'               => 5,
+            'charset'               => 'utf8',
+            'password'              => 'adb123456',
+            'database'              => 'rpc',
         ],
         /*################ REDIS CONFIG ##################*/
         'REDIS' => [
