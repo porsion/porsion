@@ -1,47 +1,84 @@
 <?php
 namespace App\HttpController;
+use EasySwoole\Http\AbstractInterface\AbstractRouter,FastRoute\RouteCollector,
+    EasySwoole\Http\Request,EasySwoole\Http\Response;
 
-use EasySwoole\Http\AbstractInterface\AbstractRouter;
-use FastRoute\RouteCollector;
 class Router extends AbstractRouter
 {
-    /**
-     * @var string
-     * 路由后缀
-     */
-    const URL_HTML_SUFFIX = '.htm';
 
-    /**
-     * @var string
-     * 路由前缀
-     */
-    const URL_SUFFIX = '/api';
-    public function initialize( RouteCollector $route )
+    function initialize(RouteCollector $route)
     {
+        $this->setGlobalMode(true);
+        $route->addGroup(URL_SUFFIX ,function($r)
+        {
+            $r->addGroup('/index',function( $r ){
+                $r->get(self::u('/index'),'Index/Index/index');
+            });
+            $r->addGroup( '/admin', function ($r) {
+                $r->get(self::u('/index'),'Admin/Index/index');
+            });
+               
+        });
+
+
         /**
-         * 所有的路由文件都写在这里
+         * 设置Method不匹配时的异常，需要返回false
          */
-        $route->get($this->format_url('/index'),'Index/index');
-        $route->get($this->format_url('/login'),'Login/index');
-        $route->post($this->format_url('/login'),'Login/index');
-        $route->get($this->format_url('/logout'),'Login/logout');
-        $route->get($this->format_url('/initmenu'),'Login/initmenu');
-        $route->get($this->format_url('/initmsg'),'Login/initmsg');
-        
+        $this->setMethodNotAllowCallBack(
+            function (Request $request,Response $response){
+                $response->withStatus(404)->write('the Method is dany');
+                return false;//结束此次响应
+            }
+        );
+
+        /**
+         * 设置路由找不到时的异常 需要返回 false
+         */
+        $this->setRouterNotFoundCallBack(
+            function (Request $request,Response $response){
+                $response->withStatus(404)->write('the action not found');
+                return false;//结束此次响应
+            }
+        );
     }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /**
-     * 格式化路由
-     * @param $url 路由
+     * 格式化一个URL
+     *
+     * @param string $url
      * @return string
      */
-    private function format_url ( ? string $url = null) :string
+    private static function u( ?string  $url = null ) : string
     {
-        if( is_null($url) ) 
+        if( is_null($url) || empty($url)) 
             return '/';
         else
-            return self::URL_SUFFIX.$url.self::URL_HTML_SUFFIX;
+            return $url . URL_HTML_SUFFIX;
     }
+
 }

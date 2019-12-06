@@ -1,11 +1,11 @@
 <?php
 namespace App\Model;
-use EasySwoole\ORM\AbstractModel;
+
 
 /**
  * 后台用户操作类
  */
-class User extends AbstractModel
+class User extends BaseModel
 {
     /**
      * 要操作的表名
