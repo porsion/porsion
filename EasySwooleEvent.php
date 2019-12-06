@@ -1,60 +1,80 @@
 <?php
 namespace EasySwoole\EasySwoole;
+use EasySwoole\EasySwoole\
+    { 
+        Swoole\EventRegister,
+        AbstractInterface\Event,
+        ServerManager
+    };
+use EasySwoole\Http\
+    {
+        Request,Response
+    };
+use App\OnMainServerCreate\{
+        Mysql,
+        Redis,
+        Producer
+    };
 
-
-use EasySwoole\EasySwoole\Swoole\EventRegister;
-use EasySwoole\EasySwoole\AbstractInterface\Event;
-use EasySwoole\Http\Request;
-use EasySwoole\Http\Response;
-use EasySwoole\ORM\DbManager;
-use EasySwoole\ORM\Db\Connection;
-use EasySwoole\EasySwoole\Config;
-use EasySwoole\ORM\Db\Config as DBconfig;
-use EasySwoole\ORM\Exception\Exception as MysqlException;
-use EasySwoole\EasySwoole\Command\Utility;
 class EasySwooleEvent implements Event
 {
 
     public static function initialize()
     {
-        // TODO: Implement initialize() method.
         date_default_timezone_set('Asia/Shanghai');
+        
     }
 
     public static function mainServerCreate(EventRegister $register)
     {
+     try{
+            /**
+             * 注册Mysql
+            */
+            Mysql::init();
+            /**
+             * 注册 Redis
+             */
+            Redis::init();
 
-        // TODO: Implement mainServerCreate() method.
-        try{
-            $mysqlConfig =  Config::getInstance()->getConf('MYSQL') ;
-            if( !$mysqlConfig )
-            {
-                throw new \RuntimeException('mysql config is requre');
-            }
-            $dbConfig = new DBconfig();
-            foreach( array_filter($mysqlConfig) as $k => $v )
-            {
-                $setItem = 'set'.ucfirst(trim($k));
-                $dbConfig->{$setItem}($v);
-            }
-            DbManager::getInstance()->addConnection(new Connection($dbConfig));
-            
-        }
-        catch( \RuntimeException $e )
-        {
-               exit(Utility::displayItem($e->getMessage(), null)."\n");
-        }
-        catch( MysqlException $e )
-        {
-            \print_r( $e->getMessage() );
-        }
+
+            /**
+             * 注册生产者
+             *
+             */
+            Producer::init();
+
+            /**
+             * 注册消费者
+             */
+
+            ServerManager::getInstance()->addProcess( new \App\Queue\Consumer(),'Queue');
+          //  $queue = new \App\Queue\Producer();
+          
+                // while(true)
+                // {
+                //     $job = new Job();
+                //     $job->setJobData(['time'=>\time()]);
+                //     \App\Queue\Producer::getInstance()->producer()->push($job);
+                //     (new Logger())->log('producer is start');
+                //     sleep(2);
+                //    // \Swoole\Coroutine::sleep(3);
+                // }
+               
+          
+         }
+         catch( \Throwable $e)
+         {
+             var_dump($e->getMessage());
+         }    
+       
        
     }
 
     public static function onRequest(Request $request, Response $response): bool
     {
         // TODO: Implement onRequest() method.
-        return true;
+         return true;
     }
 
     public static function afterRequest(Request $request, Response $response): void

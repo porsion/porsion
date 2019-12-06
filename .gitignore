@@ -3,3 +3,5 @@
 /vendor
 /.git
 /.vscode
+/db-dict.md
+./db-dict.local

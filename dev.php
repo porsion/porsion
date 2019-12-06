@@ -1,6 +1,6 @@
 <?php
 return [
-    'SERVER_NAME' => "EasySwoole",
+    'SERVER_NAME' => "Rpc",
     'MAIN_SERVER' => [
         'LISTEN_ADDRESS' => '127.0.0.1',
         'PORT' => 9005,
@@ -16,13 +16,14 @@ return [
             'workerNum'=>4,
             'maxRunningNum'=>128,
             'timeout'=>15
-        ]
+        ],
+ 
     ],
     'TEMP_DIR' => EASYSWOOLE_ROOT . '/runtime/temp',
     'LOG_DIR' =>  EASYSWOOLE_ROOT . '/runtime/logs',
     /*################ MYSQL CONFIG ##################*/
 
-        'MYSQLi' => [
+        'MYSQL' => [
             'host'                  => '127.0.0.1',
             'port'                  => 3306,
             'user'                  => 'root',
@@ -30,13 +31,19 @@ return [
             'charset'               => 'utf8',
             'password'              => 'adb123456',
             'database'              => 'rpc',
+            'MaxIdleTime'           => 15,
+            'MaxObjectNum'          => 20,
+            'MinObjectNum'          => 5
         ],
-        /*################ REDIS CONFIG ##################*/
+
+        
+    /*################ REDIS CONFIG ##################*/
         'REDIS' => [
             'host'          => '127.0.0.1',
             'port'          => '6379',
             'auth'          => '',
-            'POOL_MAX_NUM'  => '100',
+            'db'            => null,
+            'POOL_MAX_NUM'  => '80',
             'POOL_MIN_NUM'  => '5',
             'POOL_TIME_OUT' => '0.1',
         ],
