@@ -11,6 +11,8 @@ class WriteLog implements TaskInterface
 
     /**
      * 构造函数需要传参
+     *
+     * @param array|null $data
      */
     public function __construct( ? array $data = [])
     {
@@ -19,6 +21,9 @@ class WriteLog implements TaskInterface
 
     /**
      * 具体执行的业务
+     *
+     * @param int $taskId
+     * @param int $workerIndex
      */
     function run(int $taskId, int $workerIndex)
     {

@@ -1,78 +1,56 @@
 <?php
 namespace EasySwoole\EasySwoole;
 use EasySwoole\EasySwoole\
-    { 
+    {
         Swoole\EventRegister,
         AbstractInterface\Event,
-        ServerManager
     };
 use EasySwoole\Http\
     {
         Request,Response
     };
-use App\OnMainServerCreate\{
+use App\ServerInit\{
         Mysql,
         Redis,
-        Producer
+        RpcServices,
     };
-
 class EasySwooleEvent implements Event
 {
 
     public static function initialize()
     {
         date_default_timezone_set('Asia/Shanghai');
-        
+            /**
+             * 初始化Mysql
+            */
+             Mysql::init();
+            /**
+             * 初始化 Redis
+             */
+
+            Redis::init();
+
+            /**
+             * 初始化生产者
+             *
+             */
+           //  Producer::init();
+
+            /**
+             * 注册各个rpc服务
+             * 必须在redis初始化之后
+             */
+            RpcServices::init();
     }
 
     public static function mainServerCreate(EventRegister $register)
     {
-     try{
-            /**
-             * 注册Mysql
-            */
-            Mysql::init();
-            /**
-             * 注册 Redis
-             */
-            Redis::init();
 
-
-            /**
-             * 注册生产者
-             *
-             */
-            Producer::init();
-
-            /**
-             * 注册消费者
-             */
-
-            ServerManager::getInstance()->addProcess( new \App\Queue\Consumer(),'Queue');
-          //  $queue = new \App\Queue\Producer();
-          
-                // while(true)
-                // {
-                //     $job = new Job();
-                //     $job->setJobData(['time'=>\time()]);
-                //     \App\Queue\Producer::getInstance()->producer()->push($job);
-                //     (new Logger())->log('producer is start');
-                //     sleep(2);
-                //    // \Swoole\Coroutine::sleep(3);
-                // }
-               
-          
-         }
-         catch( \Throwable $e)
-         {
-             var_dump($e->getMessage());
-         }    
-       
-       
     }
 
     public static function onRequest(Request $request, Response $response): bool
     {
+        $request->ip = $request->getHeader('x-real-ip');
         // TODO: Implement onRequest() method.
          return true;
     }

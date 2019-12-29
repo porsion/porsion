@@ -1,8 +1,6 @@
 <?php
 namespace App\HttpController\Index;
-use App\Exception\{ LoginException , TokenException};
-use App\Util\HttpStatusCode,
-     App\HttpController\BaseController;
+use App\HttpController\BaseController;
     
 class Base extends BaseController
 {
@@ -12,32 +10,19 @@ class Base extends BaseController
         }
 
 
-            
-
-
-       /**
-        * 请求之前，验证一下吧
-        *
-        * @param string|null $action
-        * @return boolean|null
-        */
+    /**
+     * 请求之前，验证一下吧
+     *
+     * @param string|null $action
+     *
+     * @return boolean|null
+     * @throws \EasySwoole\Jwt\Exception
+     */
         protected function onRequest( ? string $action) :? bool
         {
-            
-          try{
-              $this->verifyToken( $this->request(),'admin');
-              $this->verifyLogin( $this->request(),'admin');
-          }
-          catch( LoginException $e) {
-            $this->noLogin();
-            return false;
-          }
-          catch (TokenException $e )
-          {
-            $this->noLogin();
-            return false;
-          }
-          return true;
+
+
+            return true;
             //$token = $this->request->getHeaderLine('X-token');
            // $obj = \EasySwoole\Jwt\Jwt::getInstance()->algMethod('AES')->setSecretKey('eww')->setIss()->publish(); // 签发
 
@@ -59,19 +44,6 @@ class Base extends BaseController
             //         echo 'token过期';
             //         break;
             // }
-
-        }
-
-
-        
-        /**
-         * 请求通过了干点啥
-         *
-         * @param string|null $actionName
-         * @return void
-         */
-        protected function afterAction(?string $actionName): void
-        {
 
         }
 

@@ -1,83 +1,88 @@
 <?php
 namespace App\HttpController\Admin;
-use App\HttpController\BaseController,
-    App\Util\HttpStatusCode;
-use App\Exception\{ LoginException , TokenException};
+use App\Exception\RoleException;
+use App\HttpController\BaseController;
+use App\Exception\TokenException;
+use App\Logic\System;
+use App\Util\Common;
+use App\Util\Constans;
+use EasySwoole\Jwt\Exception;
+use EasySwoole\Jwt\Jwt;
+
 class Base extends BaseController
 {
+    use \App\Util\OnRequest,  \App\Util\HttpStatus;
 
-        public function index(){}
-
-
-       /**
-        * 请求之前，验证一下吧
-        *
-        * @param string|null $action
-        * @return boolean|null
-        */
-        protected function onRequest( ? string $action) :? bool
+    /**
+     * 请求之前，验证一下吧
+     *
+     * @param string|null $action
+     *
+     * @return boolean|null
+     * @throws Exception
+     * @throws \EasySwoole\Component\Context\Exception\ModifyError
+     */
+    protected function onRequest( ? string $action) :? bool
         {
-          // 添加跨域设置，建议去nginx里去设置
-          // $this->response()->withHeader('Access-Control-Allow-Origin', '*');
-          // $this->response()->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-          // $this->response()->withHeader('Access-Control-Allow-Credentials', 'true');
-          // $this->response()->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-          // if ($this->request()->getMethod() === 'OPTIONS') {
-          //   $this->response()->withStatus(HttpStatusCode::SUCCESS);
-          //     return false;
-          // }
-            
-          try{
-              $this->verifyToken( $this->request(),'index');
-              $this->verifyLogin( $this->request(),'index');
-          }
-          catch( LoginException $e) {
-            $this->noLogin();
-            return false;
-          }
-          catch (TokenException $e )
+
+            $no_login_action = ['login','index'];
+            $is_auth_role = true;
+          if( $action && !in_array($action,$no_login_action) )
           {
-            $this->noLogin();
-            return false;
+              try{
+                  $this->verifyToken( $this->request());
+                  if($is_auth_role)
+                  {
+                      $this->authRole($this->request(),$action);
+                  }
+                  return true;
+              }
+              catch (TokenException $e )
+              {
+                  $this->noLogin();
+                  return false;
+              }
+              catch ( RoleException $e)
+              {
+                  $this->noAuth();
+                  return false;
+              }
+              catch( \EasySwoole\Jwt\Exception $e)
+              {
+                  $this->noAuth();
+                  return false;
+              }
+              catch ( \EasySwoole\Component\Context\Exception\ModifyError $e )
+              {
+                  $this->noLogin();
+                  return false;
+              }
+              catch ( Exception $e )
+              {
+                  throw $e;
+              }
+              return true;
           }
           return true;
-            //$token = $this->request->getHeaderLine('X-token');
-           // $obj = \EasySwoole\Jwt\Jwt::getInstance()->algMethod('AES')->setSecretKey('eww')->setIss()->publish(); // 签发
-
-           //$jwt =  \EasySwoole\Jwt\Jwt::getInstance();
-
-          // $result = $jwt -> decode($token);//验证
-    
-            // var_dump($result);
-            
-            // switch ($result->getStatus())
-            // {
-            //     case  1:
-            //         echo '验证通过';
-            //         break;
-            //     case  2:
-            //         echo '验证失败';
-            //         break;
-            //     case  3:
-            //         echo 'token过期';
-            //         break;
-            // }
-
         }
 
-
-   
-
-
-        
-        /**
-         * 请求通过了干点啥
-         *
-         * @param string|null $actionName
-         * @return void
-         */
         protected function afterAction(?string $actionName): void
         {
+            if( $actionName != 'login' )
+            {
+                $jwt = Jwt::getInstance()->setSecretKey(Constans::TOKEN_KEY);
+                $result = $jwt->decode($this->request()->getHeaderLine('x-token'));
+                $exp = $result->getExp();
+                if(  $exp - time() <= ( 20*60) )
+                {
+                    $token_life_time = (int) System::findAll('token_life_time')['v'];
+                    $new_token = Common::createToken($result->getIss(),$token_life_time * 60);
+                    Common::redis()->expire(Constans::REDIS_ADMIN_USER_KEY . $result->getIss(), $token_life_time * 60);
+                    $this->response()->withheader('new-token',$new_token);
+                }
+            }
+
+
 
         }
 }

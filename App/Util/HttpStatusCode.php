@@ -10,7 +10,7 @@ class HttpStatusCode
     const ARG_ERR   = 402;
     const ERR       = 500;
 
-
+    const DEL_ERR = 202;
     const SUCCESS   = 200;
 
     const NO_FOUND = 404;
