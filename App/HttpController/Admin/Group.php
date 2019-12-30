@@ -12,8 +12,14 @@
 namespace App\HttpController\Admin;
 
 
-use App\Logic\AdminGruop;
+use App\Logic\AdminGroup as AdminGroupLogic;
+use App\Model\AdminGroup;
+use \Swoole\Coroutine\Channel;
 use App\Model\GroupPriMap;
+use EasySwoole\ORM\Exception\Exception;
+use App\Logic\RoleMenu as RoleMenuLogic;
+use Throwable;
+use function array_diff;
 
 final class Group extends Base
 {
@@ -30,7 +36,7 @@ final class Group extends Base
      */
     public function gAdmin()
     {
-            $data = AdminGruop::findAll($this->request());
+            $data = AdminGroupLogic::findAll($this->request());
             return $this->lay($data['data'],$data['rows']);
     }
 
@@ -43,9 +49,10 @@ final class Group extends Base
         $id = (int)$this->request()->getQueryParam('id');
         if( $id > 0 )
         {
-             $data = AdminGruop::findOne($id);
+             $data = AdminGroupLogic::findOne($id);
              return $this->success($data);
         }
+        return $this->argError();
     }
 
     /**
@@ -54,15 +61,15 @@ final class Group extends Base
     public function adminSave()
     {
         $data = $this->request()->getParsedBody('data');
-        AdminGruop::update($data);
+        AdminGroupLogic::update($data);
         return $this->success();
     }
 
     /**
      * @return mixed
      * 删除一个用户组
-     * @throws \EasySwoole\ORM\Exception\Exception
-     * @throws \Throwable
+     * @throws Exception
+     * @throws Throwable
      */
     public function adminDel()
     {
@@ -70,7 +77,7 @@ final class Group extends Base
             $rule_id = (int) $this->request()->getQueryParam('rule_id');
             if( $auto_id > 0 && $rule_id > 0)
             {
-                $ret = AdminGruop::del($auto_id,$rule_id);
+                $ret = AdminGroupLogic::del($auto_id,$rule_id);
                 if($ret === false)
                 {
                     return $this->delError('不能删除！此用户组还有人在使用！');
@@ -85,7 +92,7 @@ final class Group extends Base
      */
     public function adminAddPri()
     {
-           $ret = AdminGruop::actPri($this->request(),'add');
+           $ret = AdminGroupLogic::actPri($this->request(),'add');
            if( $ret > 0 ) return $this->success();
            return $this->err();
     }
@@ -100,6 +107,55 @@ final class Group extends Base
         $ret = GroupPriMap::create()->connection('write')->destroy($map_aotu_id);
         if( $ret > 0 )
             return $this->success();
+        return $this->err();
+    }
+
+
+    /**
+     * 列出后台用户组当前的权限菜单
+     */
+    public function adminRoleMenu()
+    {
+        $group_id = (int)$this->request()->getQueryParam('group_id');
+        if( $group_id <= 0 ) return $this->argError();
+        $data = [];
+        $chan = new Channel(2);
+        go(function() use ($chan){
+            $chan->push(['all_role_menu' =>  RoleMenuLogic::findByTree()]);
+        });
+        go(function() use ($chan,$group_id){
+            $group_role_menu_ids = AdminGroupLogic::findRoleMenuIdByGroupId($group_id);
+            $all_data = \App\Model\RoleMenu::create()->column('pid');
+            $chan->push(['group_role_menu_ids' =>
+                array_diff( $group_role_menu_ids, array_unique( array_filter( $all_data) ) )]);
+        });
+        for($i=0;$i < 2;$i++)
+        {
+            $data += $chan->pop(3);
+        }
+        return $this->success($data);
+    }
+
+
+    /**
+     * @return mixed
+     * @throws Exception
+     * @throws Throwable
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * 保存用户组权限菜单的修改
+     */
+    public function adminRoleMenuSave()
+    {
+        $ids = $this->request()->getParsedBody('ids');
+        $group_id = $this->request()->getParsedBody('group_id');
+        if( !$group_id ) return $this->argError();
+        $is_has_group_id = AdminGroup::create()->get($group_id);
+        if( !$is_has_group_id ) return $this->argError();
+        $ret = AdminGroupLogic::saveGroupMenuMap((array)$ids,$group_id);
+        if( $ret > 0 )
+        {
+            return $this->success();
+        }
         return $this->err();
     }
 }

@@ -35,7 +35,7 @@ class Pri
         if( $has  )
         {
             $where  = "`map`.`group_id` = $group_id";
-            if( $role_menu_id > 0 )
+            if( (int)$role_menu_id > 0 )
             {
                 $where .= " AND `pr`.`role_menu_id` = $role_menu_id";
             }
@@ -180,7 +180,7 @@ class Pri
      * @return array
      * @throws Exception
      * @throws \Throwable
-     * 获取某个不拥有的权限
+     * 获取某个用户组不拥有的权限
      */
     private static function getPrisWithoutGroup( int $group_id,array $limit,int $role_menu_id)
     {

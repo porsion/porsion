@@ -1,7 +1,7 @@
 <?php
 namespace App\Util;
 use EasySwoole\Component\Context\ContextManager;
-use EasySwoole\EasySwoole\Task\TaskManager;
+use EasySwoole\Component\Context\Exception\ModifyError;
 use EasySwoole\Http\Request;
 use EasySwoole\Jwt\Jwt;
 use EasySwoole\RedisPool\Redis;
@@ -11,6 +11,14 @@ class Common
         {
             return Redis::defer('redis');
         }
+
+    /**
+     * @param $sign
+     * @param int|null $time
+     *
+     * @return false|string
+     * 登录成功后，签发token
+     */
         public static function createToken( $sign , ? int $time = 3600)
         {
             $obj = Jwt::getInstance()->setSecretKey(Constans::TOKEN_KEY)->publish();
@@ -20,11 +28,16 @@ class Common
             //设置签发时间
             $obj->setIat(time());
             //设置签发者
-
             $obj->setIss($sign);
             return  $obj->__toString();
         }
 
+    /**
+     * @param Request $req
+     *
+     * @return array
+     * 解析sql的limit语句
+     */
     public static function limit( Request $req )
     {
         $limit = $req->getQueryParams();
@@ -34,10 +47,15 @@ class Common
         return ['page'=>$page,'limit'=>$li];
     }
 
+    /**
+     * @param array $data
+     * @param string|null $child
+     *
+     * @return array
+     * 创建树形菜单 主要是针对后台用户组的权限菜单
+     */
     static public function create_menu(array $data, ?string $child = 'child' )
     {
-        $task = TaskManager::getInstance();
-        $data = $task->sync(function()use( $data,$child){
             $items = [];
             foreach ($data as $v) {
                 $items[$v['auto_id']] = $v;
@@ -52,11 +70,15 @@ class Common
                 }
             }
             return $tree;
-        });
-        return $data;
     }
 
 
+    /**
+     * @param bool|null $md5
+     *
+     * @return bool|mixed|string|null
+     * 获取UID 全局
+     */
     final public static function getUid(? bool $md5 = false)
     {
         $md5_uid = ContextManager::getInstance()->get('admin_uid');
@@ -69,6 +91,12 @@ class Common
 
     }
 
+    /**
+     * @param string $uid
+     *
+     * @throws ModifyError
+     * 设置UID 全局
+     */
     final public static function setUid( string $uid) : void
     {
         // md5的uid

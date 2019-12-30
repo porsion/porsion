@@ -74,6 +74,8 @@ class Router extends AbstractRouter
                     $r->get(self::u('/admin_del'),'Admin/Group/adminDel');
                     $r->post(self::u('/admin_add_pri'),'Admin/Group/adminAddPri');//为后台用户组增加某些权限
                     $r->post(self::u('/admin_del_pri'),'Admin/Group/adminDelPri'); //删除后台用户组的某些权限
+                    $r->get(self::u('/role_menu'),'Admin/Group/adminRoleMenu'); //列出后台用户组当前的权限菜单
+                    $r->post(self::u('/role_menu_save'),'Admin/Group/adminRoleMenuSave');//保存用户组权限菜单的修改
                 });
 
                 $r->addGroup('/pri',function($r){
@@ -91,6 +93,17 @@ class Router extends AbstractRouter
                     $r->get(self::u('/system_error'),'Admin/Log/systemError');
                     $r->post(self::u('/system_error_del'),'Admin/Log/delSystemError');
                 });
+
+                $r->addGroup('/oplog',function($r){
+                    $r->get(self::u('/admin'),'Admin/Oplog/admin'); //后台用户操作日志
+                    $r->post(self::u('、admin_del'),'Admin/Oplog/adminDel'); //删除操作日志
+                });
+
+                $r->addGroup('/login_log',function($r){
+                    $r->get(self::u('/admin'),'Admin/LoginLog/admin');
+                    $r->post(self::u('/admin_del'),'Admin/LoginLog/adminDel');
+                });
+
             });
 
         });

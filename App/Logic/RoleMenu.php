@@ -16,32 +16,59 @@ use App\Model\RoleMenu as Rmenu;
 use App\Util\Common;
 use EasySwoole\Http\Request;
 use EasySwoole\ORM\Exception\Exception;
+use Throwable;
 
-class RoleMenu
+final class RoleMenu
 {
-    final  public static function list( Request $req)
+    /**
+     * @param Request $req
+     *
+     * @return array
+     * @throws Throwable
+     * 以列表的形式 列出后台用户组的权限菜单 带分页
+     */
+     public static function list( Request $req)
     {
         $limit = Common::limit($req);
         try {
-            $mode = Rmenu::create()->withTotalCount();
+            $mode = Rmenu::create()->withTotalCount()->limit($limit['page'],$limit['limit']);
             $data = $mode->all(null,true);
             $result = $mode->lastQueryResult();
             $rows = $result->getTotalCount();
             return ['data'=>$data,'rows'=>$rows];
-        }  catch (\Throwable $e) {
+        }  catch (Throwable $e) {
             throw $e;
         }
 
     }
 
-    final public static function findOne( int $id): ? array
+    /**
+     * @param int $id
+     *
+     * @return array|null
+     * @throws Exception
+     * @throws Throwable
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * 标记当前$id在所有roel_menu_id
+     * 使用场景：标记某个权限的role_menu_id在role_menu里的位置
+     */
+    public static function findOne( int $id): ? array
     {
         $data = Rmenu::create()->findOne($id);
         $all_data = Rmenu::create()->findAll();
         return   ['find_data' => $data ,'all_data' => Common::create_menu( $all_data,'children' )];
     }
 
-    final public static function updateOrInsert( array $data)
+    /**
+     * @param array $data
+     *
+     * @return bool|int|null
+     * @throws Exception
+     * @throws Throwable
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * 保存修改或新增的权限菜单
+     */
+    public static function updateOrInsert( array $data)
     {
         $insertModel = Rmenu::create()->connection('write');
         if(isset($data['auto_id']) && (int)$data['auto_id'] > 0)
@@ -57,7 +84,16 @@ class RoleMenu
         return $ret;
     }
 
-    final public static function findAll( Request $req)
+    /**
+     * @param Request $req
+     *
+     * @return array
+     * @throws Exception
+     * @throws Throwable
+     *
+     * 根据pid获取该pid下面的所有子集 不带分页
+     */
+    public static function findAll( Request $req)
     {
         $mode = Rmenu::create();
         $pid = $req->getQueryParam('id');
@@ -73,7 +109,7 @@ class RoleMenu
      *
      * @return array
      * @throws Exception
-     * @throws \Throwable
+     * @throws Throwable
      * 获取某个用户组的权限列表
      */
     public static function findGroupMenu(  int $group_id) : array
@@ -85,11 +121,14 @@ class RoleMenu
     }
 
 
-    public static function findByTree(Request $req)
+    /**
+     * @return array|bool|mixed|null
+     * @throws Exception
+     * @throws Throwable 以树的形式 列出所有的后台用户组权限菜单
+     */
+    public static function findByTree()
     {
         $data = Rmenu::create()->findAll(null,true);
-       // $group_menu_ids = array_diff( $group_menu_ids, array_unique( array_filter( array_column($data,'pid') ) ) );
-       // $ret = ['all_menu' => \create_menu($data,'children'),'group_menu_ids' => $group_menu_ids];
-      return Common::create_menu($data,'children');
+        return Common::create_menu($data,'children');
     }
 }
