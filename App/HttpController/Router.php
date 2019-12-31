@@ -76,6 +76,7 @@ class Router extends AbstractRouter
                     $r->post(self::u('/admin_del_pri'),'Admin/Group/adminDelPri'); //删除后台用户组的某些权限
                     $r->get(self::u('/role_menu'),'Admin/Group/adminRoleMenu'); //列出后台用户组当前的权限菜单
                     $r->post(self::u('/role_menu_save'),'Admin/Group/adminRoleMenuSave');//保存用户组权限菜单的修改
+                    $r->post(self::u('/role_menu_ord'),'Admin/Group/adminRoleMenuOrd');//保存用户组菜单的排序修改
                 });
 
                 $r->addGroup('/pri',function($r){

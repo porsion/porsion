@@ -32,9 +32,17 @@ final class RoleMenu
         $limit = Common::limit($req);
         try {
             $mode = Rmenu::create()->withTotalCount()->limit($limit['page'],$limit['limit']);
-            $data = $mode->all(null,true);
+            if($group_id = (int)$req->getQueryParam('group_id') )
+            {
+                $mode->alias('rm')->join('group_menu_map map','map.role_menu_id = rm.auto_id','LEFT')
+                    ->where('map.group_id',$group_id )
+                ->field('rm.auto_id,map.auto_id as map_auto_id,
+                        rm.title,rm.pid,rm.href,map.ord,rm.icon')->order('map.ord');
+            }
+            $data = $mode->findAll();
             $result = $mode->lastQueryResult();
             $rows = $result->getTotalCount();
+          //  var_dump($mode->lastQuery()->getLastQuery());
             return ['data'=>$data,'rows'=>$rows];
         }  catch (Throwable $e) {
             throw $e;

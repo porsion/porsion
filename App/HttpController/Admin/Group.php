@@ -10,10 +10,9 @@
  */
 
 namespace App\HttpController\Admin;
-
-
 use App\Logic\AdminGroup as AdminGroupLogic;
 use App\Model\AdminGroup;
+use App\Model\GroupMenuMap;
 use \Swoole\Coroutine\Channel;
 use App\Model\GroupPriMap;
 use EasySwoole\ORM\Exception\Exception;
@@ -36,8 +35,8 @@ final class Group extends Base
      */
     public function gAdmin()
     {
-            $data = AdminGroupLogic::findAll($this->request());
-            return $this->lay($data['data'],$data['rows']);
+        $data = AdminGroupLogic::findAll($this->request());
+        return $this->lay($data['data'],$data['rows']);
     }
 
 
@@ -154,8 +153,28 @@ final class Group extends Base
         $ret = AdminGroupLogic::saveGroupMenuMap((array)$ids,$group_id);
         if( $ret > 0 )
         {
+
             return $this->success();
         }
+        return $this->err();
+    }
+
+
+    /**
+     * @return mixed
+     * @throws Exception
+     * @throws Throwable
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * 保存用户组菜单的排序修改
+     */
+    public function adminRoleMenuOrd()
+    {
+        $data = $this->request()->getParsedBody();
+        if(!isset($data['auto_id']) || !isset($data['ord']) || !$data['auto_id'] || !$data['ord'] )
+            return $this->argError();
+        $mode = GroupMenuMap::create()->connection('write');
+        $ret = $mode->update($data);
+        if( $ret > 0 ) return $this->success();
         return $this->err();
     }
 }

@@ -26,24 +26,24 @@ use EasySwoole\Rpc\ServiceCall;
 final class AdminOplog
 {
     /**
-     * @param int $deleteId
+     * @param array $param
      * @param string $tableName
-     * @param string $type insert|update|delete
-     * AdminOplog 之 模型操作事件
+     * @param string $action update|insert|delete
      * @param int|null $rule_id
      */
-    public static function adminGroup(int $deleteId,string $tableName,string $type, ? int $rule_id ) : void
+    public static function insAdminOplog(array $param,string $tableName,string $action, ? int $rule_id ) : void
     {
             $task = TaskManager::getInstance();
             $uid = Common::getUid();
-            $task->async(function() use ($deleteId,$tableName,$rule_id,$type,$uid){
+            $task->async(function() use ($param,$tableName,$rule_id,$action,$uid){
                 $rpcClient = Rpc::getInstance()->client();
                 $data = [
                     'admin_id'  => $uid,
                     'set_data_table'    => $tableName,
-                    'action'    => $type
+                    'action'    => $action,
+                    'param'     => json_encode($param,JSON_UNESCAPED_UNICODE)
                 ];
-               if( $type == 'delete' )
+               if( $action == 'delete' && $rule_id > 0 )
                {
                    $data['rule_id'] = $rule_id;
                }
@@ -94,7 +94,9 @@ final class AdminOplog
                     ->field('title,auto_id')->indexBy('auto_id');
            foreach($data[0] as $k => $v)
            {
+               if( $v['admin_id'] > 0 )
                $data[0][$k]['admin_user_name'] = $admin_users[$v['admin_id']]['name'];
+               if( $v['rule_id'] > 0 )
                $data[0][$k]['rule_title']       = $rules[$v['rule_id']]['title'];
                $data[0][$k]['create_time']      = date('Y-m-d H:i:s',$v['create_time']);
            }
@@ -103,6 +105,12 @@ final class AdminOplog
     }
 
 
+    /**
+     * @param Request $req
+     *
+     * @return bool
+     * 删除后台用户的操作日志
+     */
     public static function adminDel( Request $req) : bool
     {
         $ret = false;

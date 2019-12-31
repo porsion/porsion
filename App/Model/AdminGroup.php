@@ -36,10 +36,15 @@ class AdminGroup extends AbstractModel
      * @param AdminGroup $mode
      * @param int $lastInsertId
      * 新增之后的事件
+     *
+     * @throws Exception
      */
     protected static function onAfterInsert( self $mode,int $lastInsertId )
     {
-        AdminOplog::adminGroup($lastInsertId,$mode->getTableName(),'insert');
+        $param = [
+            ( $mode->schemaInfo()->getPkFiledName() ?? 'auto_id') => $lastInsertId
+        ];
+        AdminOplog::insAdminOplog($param,$mode->getTableName(),'insert');
     }
 
 
@@ -57,9 +62,11 @@ class AdminGroup extends AbstractModel
      * @param AdminGroup $mode
      * @param $afterUpdateData
      * 修改之后的事件
+     *
      */
     protected static function onAfterUpdate(self $mode,$afterUpdateData)
     {
+        AdminOplog::insAdminOplog($afterUpdateData,$mode->getTableName(),'update');
     }
 
     /**
@@ -92,7 +99,7 @@ class AdminGroup extends AbstractModel
         /**
          * 已废弃，因为写删除日志需要rule_id，此处无法接收到rule_id
          */
-       // AdminOplog::adminGroup($deleteId,$mode->getTableName(),'delete');
+       // AdminOplog::insAdminOplog($deleteId,$mode->getTableName(),'delete');
     }
 
 }

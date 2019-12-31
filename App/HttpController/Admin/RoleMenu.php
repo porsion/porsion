@@ -14,6 +14,7 @@ namespace App\HttpController\Admin;
 
 use App\Logic\RoleMenu as LogicRoleMenu;
 use App\Util\Common;
+use EasySwoole\ORM\Exception\Exception;
 
 
 class RoleMenu extends Base
@@ -28,6 +29,8 @@ class RoleMenu extends Base
     /**
      * @return mixed
      * 以带children的形式列出相关权限菜单
+     * @throws Exception
+     * @throws \Throwable
      */
     final public function add()
     {
@@ -38,6 +41,9 @@ class RoleMenu extends Base
     /**
      * @return mixed
      * 编辑某个权限菜单
+     * @throws Exception
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
     final public function edit()
     {
@@ -49,6 +55,9 @@ class RoleMenu extends Base
     /**
      * @return mixed
      * 保存某个菜单
+     * @throws Exception
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * @throws \Throwable
      */
     final public function save()
     {
@@ -88,6 +97,8 @@ class RoleMenu extends Base
     /**
      * @return mixed
      * 获取树形式的左侧菜单
+     * @throws Exception
+     * @throws \Throwable
      */
     public function findByTree()
     {

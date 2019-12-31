@@ -43,7 +43,7 @@ class Common
         $limit = $req->getQueryParams();
         $li = $limit['limit'] ?? 10;
         $pa = $limit['page'] ?? 0;
-        $page = $li * ($pa - 1);
+        $page = $li * ($pa - 1 > 0 ? $pa - 1 : 0);
         return ['page'=>$page,'limit'=>$li];
     }
 

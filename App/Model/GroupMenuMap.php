@@ -21,5 +21,15 @@ class GroupMenuMap extends  AbstractModel
     protected $autoTimeStamp = false;
 
 
+    /**
+     * @param GroupMenuMap $mode
+     * @param $deleteId
+     * 删除之后的事件
+     */
+    protected static function onAfterDelete(self $mode,$deleteId)
+    {
+           // var_dump($mode->getWhere());
+    }
+
 
 }

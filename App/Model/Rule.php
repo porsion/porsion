@@ -14,6 +14,7 @@ namespace App\Model;
 
 use App\Rpc\Log\AdminOplog;
 use EasySwoole\ORM\AbstractModel;
+use EasySwoole\ORM\Exception\Exception;
 
 class Rule extends AbstractModel
 {
@@ -45,10 +46,18 @@ class Rule extends AbstractModel
      * @param Rule $mode
      * @param $deleteId
      * 删除之后的事件 rpc远程写日志
+     *
+     * @throws Exception
      */
     protected static function onAfterDelete(self $mode, $deleteId)
     {
-        AdminOplog::adminGroup($deleteId,$mode->getTableName(),'delete');
+        if( $mode->schemaInfo()->getPkFiledName() )
+            $pk = $mode->schemaInfo()->getPkFiledName();
+        else $pk = 'auto_id';
+        $param = [
+            $pk=>$deleteId
+        ];
+        AdminOplog::insAdminOplog($param,$mode->getTableName(),'delete');
     }
 
 

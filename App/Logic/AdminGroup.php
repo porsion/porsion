@@ -98,7 +98,10 @@ final class AdminGroup
         $ret = AdminGroupModel::create()->connection('write')->destroy($auto_id);
         if( $ret > 0 )
         {
-            AdminOplog::adminGroup($auto_id,AdminGroupModel::create()->getTableName(),'delete',$rule_id);
+            $param = [
+                ( AdminGroupModel::create()->schemaInfo()->getPkFiledName() ?? 'auto_id') => $auto_id
+            ];
+            AdminOplog::insAdminOplog($param,AdminGroupModel::create()->getTableName(),'delete',$rule_id);
         }
         return $ret > 0;
     }
@@ -139,6 +142,14 @@ final class AdminGroup
         {
             $ret = GroupPriMap::create()->connection('write')->destroy($pri_ids);
         }
+        if( $ret )
+        {
+            $param = [
+               'group_id'   => $group_id,
+                'pri_id'    => $pri_ids,
+            ];
+            AdminOplog::insAdminOplog($param,GroupPriMap::create()->getTableName(),$type == 'add' ? 'insert' : 'delete');
+        }
         return $ret;
     }
 
@@ -169,7 +180,7 @@ final class AdminGroup
      */
     public static function delGroupMenuMap( ...$where)
     {
-      return  GroupMenuMap::create()->connection('write')->where(...$where)
+        return GroupMenuMap::create()->connection('write')->where(...$where)
             ->destroy();
     }
 
@@ -181,7 +192,8 @@ final class AdminGroup
      * @return int
      * @throws Exception
      * @throws Throwable
-     * @throws \EasySwoole\Mysqli\Exception\Exception 保存后台用户组权限菜单的修改
+     * @throws \EasySwoole\Mysqli\Exception\Exception
+     * 保存后台用户组权限菜单的修改
      */
     public static function saveGroupMenuMap(array $role_menu_ids,int $group_id) : int
     {
@@ -209,6 +221,14 @@ final class AdminGroup
                 $mode = GroupMenuMap::create()->connection('write')->where('role_menu_id',$delete_data,'IN');
                 $ret = $mode->destroy();
             }
+        }
+        if( $ret > 0 )
+        {
+            $param = [
+                'group_id'   => $group_id,
+                'role_menu_id'    => $role_menu_ids,
+            ];
+            AdminOplog::insAdminOplog($param,GroupMenuMap::create()->getTableName(),'update');
         }
         return $ret;
     }
